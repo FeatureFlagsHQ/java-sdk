@@ -1,0 +1,114 @@
+{
+  "user_segments": {
+    "premium_user": {
+      "plan": "premium",
+      "age": 25,
+      "region": "US-West",
+      "subscription_active": true,
+      "account_type": "business"
+    },
+    "basic_user": {
+      "plan": "basic",
+      "age": 19,
+      "region": "EU-Central",
+      "subscription_active": true,
+      "account_type": "personal"
+    },
+    "trial_user": {
+      "plan": "trial",
+      "age": 30,
+      "region": "US-East",
+      "subscription_active": false,
+      "account_type": "personal"
+    },
+    "enterprise_user": {
+      "plan": "enterprise",
+      "age": 35,
+      "region": "US-Central",
+      "subscription_active": true,
+      "account_type": "enterprise",
+      "team_size": 50
+    }
+  },
+  "segment_definitions": [
+    {
+      "name": "plan",
+      "type": "string",
+      "description": "User subscription plan",
+      "possible_values": ["basic", "premium", "enterprise", "trial"]
+    },
+    {
+      "name": "age",
+      "type": "int",
+      "description": "User age in years",
+      "min_value": 13,
+      "max_value": 120
+    },
+    {
+      "name": "region",
+      "type": "string",
+      "description": "User geographic region",
+      "possible_values": ["US-East", "US-West", "US-Central", "EU-Central", "EU-West", "APAC"]
+    },
+    {
+      "name": "subscription_active",
+      "type": "boolean",
+      "description": "Whether user has active subscription"
+    },
+    {
+      "name": "account_type",
+      "type": "string",
+      "description": "Type of user account",
+      "possible_values": ["personal", "business", "enterprise"]
+    },
+    {
+      "name": "team_size",
+      "type": "int",
+      "description": "Size of user's team (for enterprise accounts)",
+      "min_value": 1,
+      "max_value": 10000
+    }
+  ],
+  "test_scenarios": [
+    {
+      "description": "Premium user should get premium features",
+      "user_segments": {
+        "plan": "premium",
+        "age": 25
+      },
+      "expected_flags": {
+        "premium_feature": true,
+        "advanced_analytics": true
+      }
+    },
+    {
+      "description": "Basic user should not get premium features",
+      "user_segments": {
+        "plan": "basic",
+        "age": 20
+      },
+      "expected_flags": {
+        "premium_feature": false,
+        "advanced_analytics": false
+      }
+    },
+    {
+      "description": "Age-based feature targeting",
+      "user_segments": {
+        "age": 17
+      },
+      "expected_flags": {
+        "age_restricted_feature": false
+      }
+    },
+    {
+      "description": "Regional feature availability",
+      "user_segments": {
+        "region": "US-West"
+      },
+      "expected_flags": {
+        "beta_feature": true
+      }
+    }
+  ]
+}

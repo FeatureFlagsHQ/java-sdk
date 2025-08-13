@@ -1,0 +1,174 @@
+plugins {
+    id 'java-library'
+    id 'maven-publish'
+    id 'signing'
+    id 'jacoco'
+}
+
+group = 'com.featureflagshq'
+archivesBaseName = 'featureflagshq-java-sdk'
+version = '1.0.0'
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_1_8
+    targetCompatibility = JavaVersion.VERSION_1_8
+    withSourcesJar()
+    withJavadocJar()
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    // HTTP Client
+    implementation 'com.squareup.okhttp3:okhttp:4.12.0'
+    implementation 'com.squareup.okhttp3:logging-interceptor:4.12.0'
+    
+    // JSON Processing
+    implementation 'com.fasterxml.jackson.core:jackson-databind:2.15.2'
+    
+    // Test Dependencies
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.9.3'
+    testImplementation 'org.mockito:mockito-core:5.3.1'
+    testImplementation 'org.mockito:mockito-junit-jupiter:5.3.1'
+    testImplementation 'com.github.tomakehurst:wiremock-jre8:2.35.0'
+}
+
+test {
+    useJUnitPlatform()
+    testLogging {
+        events "passed", "skipped", "failed"
+    }
+}
+
+javadoc {
+    options.encoding = 'UTF-8'
+    options.charSet = 'UTF-8'
+    options.author = true
+    options.version = true
+    options.use = true
+    options.windowTitle = "FeatureFlagsHQ Java SDK ${version}"
+    options.docTitle = "FeatureFlagsHQ Java SDK ${version}"
+    options.bottom = "Copyright © 2024 FeatureFlagsHQ. All rights reserved."
+    if(JavaVersion.current().isJava9Compatible()) {
+        options.addBooleanOption('html5', true)
+    }
+}
+
+jar {
+    manifest {
+        attributes(
+            'Implementation-Title': 'FeatureFlagsHQ Java SDK',
+            'Implementation-Version': version,
+            'Implementation-Vendor': 'FeatureFlagsHQ',
+            'Built-By': System.getProperty('user.name'),
+            'Built-Date': new Date(),
+            'Built-JDK': System.getProperty('java.version'),
+            'Built-Gradle': gradle.gradleVersion
+        )
+    }
+}
+
+jacoco {
+    toolVersion = "0.8.8"
+}
+
+jacocoTestReport {
+    reports {
+        xml.required = true
+        html.required = true
+    }
+}
+
+publishing {
+    publications {
+        maven(MavenPublication) {
+            from components.java
+            
+            pom {
+                name = 'FeatureFlagsHQ Java SDK'
+                description = 'Official Java SDK for FeatureFlagsHQ feature flag service'
+                url = 'https://github.com/featureflagshq/java-sdk'
+                
+                licenses {
+                    license {
+                        name = 'MIT License'
+                        url = 'https://opensource.org/licenses/MIT'
+                    }
+                }
+                
+                developers {
+                    developer {
+                        name = 'FeatureFlagsHQ Team'
+                        email = 'hello@featureflagshq.com'
+                        organization = 'FeatureFlagsHQ'
+                        organizationUrl = 'https://featureflagshq.com'
+                    }
+                }
+                
+                scm {
+                    connection = 'scm:git:git://github.com/featureflagshq/java-sdk.git'
+                    developerConnection = 'scm:git:ssh://github.com:featureflagshq/java-sdk.git'
+                    url = 'https://github.com/featureflagshq/java-sdk/tree/main'
+                }
+            }
+        }
+    }
+    
+    repositories {
+        maven {
+            name = "OSSRH"
+            url = version.endsWith('SNAPSHOT') ? 
+                "https://s01.oss.sonatype.org/content/repositories/snapshots/" : 
+                "https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/"
+            credentials {
+                username = project.findProperty("ossrhUsername") ?: System.getenv("OSSRH_USERNAME")
+                password = project.findProperty("ossrhPassword") ?: System.getenv("OSSRH_PASSWORD")
+            }
+        }
+    }
+}
+
+signing {
+    def signingKey = project.findProperty("signingKey") ?: System.getenv("SIGNING_KEY")
+    def signingPassword = project.findProperty("signingPassword") ?: System.getenv("SIGNING_PASSWORD")
+    
+    if (signingKey && signingPassword) {
+        useInMemoryPgpKeys(signingKey, signingPassword)
+        sign publishing.publications.maven
+    }
+}
+
+// Task to create a fat JAR with all dependencies
+task fatJar(type: Jar) {
+    manifest {
+        attributes(
+            'Implementation-Title': 'FeatureFlagsHQ Java SDK',
+            'Implementation-Version': version,
+            'Main-Class': 'com.featureflagshq.sdk.FeatureFlagsHQSDK'
+        )
+    }
+    archiveClassifier = 'all'
+    from {
+        configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
+    }
+    with jar
+}
+
+// Custom task to run integration tests
+task integrationTest(type: Test) {
+    useJUnitPlatform()
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+    include '**/*IntegrationTest*'
+    
+    systemProperty 'test.integration', 'true'
+    
+    testLogging {
+        events "passed", "skipped", "failed"
+        exceptionFormat "full"
+    }
+}
+
+check.dependsOn jacocoTestReport

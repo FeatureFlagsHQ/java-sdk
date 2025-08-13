@@ -1,0 +1,23 @@
+Manifest-Version: 1.0
+Implementation-Title: FeatureFlagsHQ Java SDK
+Implementation-Version: 1.0.0
+Implementation-Vendor: FeatureFlagsHQ
+Implementation-Vendor-Id: com.featureflagshq
+Specification-Title: FeatureFlagsHQ Java SDK
+Specification-Version: 1.0
+Specification-Vendor: FeatureFlagsHQ
+Bundle-ManifestVersion: 2
+Bundle-Name: FeatureFlagsHQ Java SDK
+Bundle-SymbolicName: com.featureflagshq.sdk
+Bundle-Version: 1.0.0
+Bundle-Vendor: FeatureFlagsHQ
+Export-Package: com.featureflagshq.sdk,
+ com.featureflagshq.sdk.models,
+ com.featureflagshq.sdk.exceptions,
+ com.featureflagshq.sdk.config
+Import-Package: javax.crypto,
+ javax.crypto.spec,
+ java.security,
+ java.util.concurrent,
+ java.util.logging
+Automatic-Module-Name: com.featureflagshq.sdk

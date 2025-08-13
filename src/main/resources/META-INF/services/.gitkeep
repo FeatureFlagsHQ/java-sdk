@@ -1,0 +1,3 @@
+# This directory is reserved for Java ServiceLoader configuration files
+# Files in this directory define service implementations that can be discovered at runtime
+# For example: com.featureflagshq.sdk.SomeService would contain implementation class names
