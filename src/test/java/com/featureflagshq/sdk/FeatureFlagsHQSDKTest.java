@@ -503,7 +503,9 @@ public class FeatureFlagsHQSDKTest {
         void shouldHandleMalformedJsonGracefully() {
             // This test would be more meaningful with actual flag data
             // In offline mode, we're testing the default behavior
-            Object result = sdk.getJson(TEST_USER_ID, "malformed_json_flag", Map.of("default", "value"));
+            Map<String, Object> defaultMap = new HashMap<>();
+            defaultMap.put("default", "value");
+            Object result = sdk.getJson(TEST_USER_ID, "malformed_json_flag", defaultMap);
             assertNotNull(result);
             assertTrue(result instanceof Map);
         }

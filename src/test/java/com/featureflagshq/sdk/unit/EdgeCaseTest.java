@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.RepeatedTest;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.List;
@@ -98,11 +99,15 @@ public class EdgeCaseTest {
         @DisplayName("Should handle segments with complex nested objects")
         void shouldHandleSegmentsWithComplexNestedObjects() {
             Map<String, Object> nestedObject = new HashMap<>();
-            nestedObject.put("level1", Map.of("level2", Map.of("level3", "deep_value")));
+            Map<String, Object> level3 = new HashMap<>();
+            level3.put("level3", "deep_value");
+            Map<String, Object> level2 = new HashMap<>();
+            level2.put("level2", level3);
+            nestedObject.put("level1", level2);
             
             Map<String, Object> complexSegments = new HashMap<>();
             complexSegments.put("nested", nestedObject);
-            complexSegments.put("list", List.of(1, 2, 3, "string", true));
+            complexSegments.put("list", Arrays.asList(1, 2, 3, "string", true));
 
             boolean result = sdk.getBool(TEST_USER_ID, "complex_flag", false, complexSegments);
             assertFalse(result);
@@ -334,7 +339,9 @@ public class EdgeCaseTest {
         @RepeatedTest(5)
         @DisplayName("Should be deterministic across multiple runs")
         void shouldBeDeterministicAcrossMultipleRuns() {
-            Map<String, Object> segments = Map.of("plan", "premium", "age", 25);
+            Map<String, Object> segments = new HashMap<>();
+            segments.put("plan", "premium");
+            segments.put("age", 25);
             
             boolean result1 = sdk.getBool(TEST_USER_ID, "deterministic_flag", false, segments);
             boolean result2 = sdk.getBool(TEST_USER_ID, "deterministic_flag", false, segments);

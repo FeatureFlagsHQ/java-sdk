@@ -110,7 +110,10 @@ public final class MockFactory {
         try {
             Map<String, Object> response = new HashMap<>();
             response.put("data", Collections.emptyList());
-            response.put("metadata", Map.of("total_count", 0, "environment", "test"));
+            Map<String, Object> metadata = new HashMap<>();
+            metadata.put("total_count", 0);
+            metadata.put("environment", "test");
+            response.put("metadata", metadata);
             return objectMapper.writeValueAsString(response);
         } catch (JsonProcessingException e) {
             throw new RuntimeException("Failed to create empty flags response", e);

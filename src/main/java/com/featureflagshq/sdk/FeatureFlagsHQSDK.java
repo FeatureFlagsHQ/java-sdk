@@ -3,6 +3,8 @@ package com.featureflagshq.sdk;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.featureflagshq.sdk.models.EvaluationContext;
+import com.featureflagshq.sdk.models.FlagChange;
 import okhttp3.*;
 import okhttp3.logging.HttpLoggingInterceptor;
 
@@ -1306,33 +1308,33 @@ public class FeatureFlagsHQSDK implements AutoCloseable {
                 result.put("rollout_evaluations", stats.rolloutEvaluations);
                 result.put("last_sync", stats.lastSync);
                 result.put("last_log_upload", stats.lastLogUpload);
-                result.put("api_calls", Map.of(
-                    "successful", stats.apiCalls.successful,
-                    "failed", stats.apiCalls.failed,
-                    "total", stats.apiCalls.total
-                ));
+                Map<String, Object> apiCallsMap = new HashMap<>();
+                apiCallsMap.put("successful", stats.apiCalls.successful);
+                apiCallsMap.put("failed", stats.apiCalls.failed);
+                apiCallsMap.put("total", stats.apiCalls.total);
+                result.put("api_calls", apiCallsMap);
                 result.put("errors", new HashMap<>(stats.errors));
                 result.put("session_id", sessionId);
                 result.put("cached_flags_count", flags.size());
                 result.put("pending_user_logs", logsQueue.size());
-                result.put("circuit_breaker", Map.of(
-                    "state", circuitBreaker.state.toString(),
-                    "failure_count", circuitBreaker.failureCount
-                ));
-                result.put("evaluation_times", Map.of(
-                    "avg_ms", avgMs,
-                    "min_ms", stats.evaluationTimes.minMs == Long.MAX_VALUE ? 0 : stats.evaluationTimes.minMs,
-                    "max_ms", stats.evaluationTimes.maxMs,
-                    "total_ms", stats.evaluationTimes.totalMs,
-                    "count", stats.evaluationTimes.count
-                ));
-                result.put("configuration", Map.of(
-                    "polling_interval", POLLING_INTERVAL,
-                    "log_upload_interval", LOG_UPLOAD_INTERVAL,
-                    "offline_mode", offlineMode,
-                    "enable_metrics", enableMetrics,
-                    "environment", environment
-                ));
+                Map<String, Object> circuitBreakerMap = new HashMap<>();
+                circuitBreakerMap.put("state", circuitBreaker.state.toString());
+                circuitBreakerMap.put("failure_count", circuitBreaker.failureCount);
+                result.put("circuit_breaker", circuitBreakerMap);
+                Map<String, Object> evaluationTimesMap = new HashMap<>();
+                evaluationTimesMap.put("avg_ms", avgMs);
+                evaluationTimesMap.put("min_ms", stats.evaluationTimes.minMs == Long.MAX_VALUE ? 0 : stats.evaluationTimes.minMs);
+                evaluationTimesMap.put("max_ms", stats.evaluationTimes.maxMs);
+                evaluationTimesMap.put("total_ms", stats.evaluationTimes.totalMs);
+                evaluationTimesMap.put("count", stats.evaluationTimes.count);
+                result.put("evaluation_times", evaluationTimesMap);
+                Map<String, Object> configurationMap = new HashMap<>();
+                configurationMap.put("polling_interval", POLLING_INTERVAL);
+                configurationMap.put("log_upload_interval", LOG_UPLOAD_INTERVAL);
+                configurationMap.put("offline_mode", offlineMode);
+                configurationMap.put("enable_metrics", enableMetrics);
+                configurationMap.put("environment", environment);
+                result.put("configuration", configurationMap);
                 
                 return result;
             }
@@ -1340,7 +1342,7 @@ public class FeatureFlagsHQSDK implements AutoCloseable {
             if (ENABLE_LOGGING) {
                 logger.warning("Error getting stats: " + e.getMessage());
             }
-            return Map.of("error", e.getMessage());
+            return Collections.singletonMap("error", e.getMessage());
         }
     }
     
@@ -1363,10 +1365,10 @@ public class FeatureFlagsHQSDK implements AutoCloseable {
             result.put("environment", environment);
             result.put("offline_mode", offlineMode);
             result.put("last_sync", stats.lastSync);
-            result.put("circuit_breaker", Map.of(
-                "state", circuitBreaker.state.toString(),
-                "failure_count", circuitBreaker.failureCount
-            ));
+            Map<String, Object> circuitBreakerHealthMap = new HashMap<>();
+            circuitBreakerHealthMap.put("state", circuitBreaker.state.toString());
+            circuitBreakerHealthMap.put("failure_count", circuitBreaker.failureCount);
+            result.put("circuit_breaker", circuitBreakerHealthMap);
             result.put("system_info", systemInfo);
             result.put("initialization_complete", initializationComplete.getCount() == 0);
             
@@ -1375,7 +1377,10 @@ public class FeatureFlagsHQSDK implements AutoCloseable {
             if (ENABLE_LOGGING) {
                 logger.warning("Error getting health check: " + e.getMessage());
             }
-            return Map.of("status", "error", "error", e.getMessage());
+            Map<String, Object> errorMap = new HashMap<>();
+            errorMap.put("status", "error");
+            errorMap.put("error", e.getMessage());
+            return errorMap;
         }
     }
     
@@ -1424,18 +1429,6 @@ public class FeatureFlagsHQSDK implements AutoCloseable {
     }
     
     // Helper classes and enums
-    
-    public static class FlagChange {
-        public final String flagName;
-        public final Object oldValue;
-        public final Object newValue;
-        
-        public FlagChange(String flagName, Object oldValue, Object newValue) {
-            this.flagName = flagName;
-            this.oldValue = oldValue;
-            this.newValue = newValue;
-        }
-    }
     
     private static class EvaluationResult {
         public final Object value;

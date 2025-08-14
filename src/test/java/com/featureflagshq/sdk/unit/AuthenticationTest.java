@@ -6,6 +6,9 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -337,13 +340,12 @@ public class AuthenticationTest {
         @DisplayName("Should reject insecure configurations in production")
         void shouldRejectInsecureConfigurationsInProduction() {
             // Test the production configuration validator
-            Map<String, Object> insecureConfig = Map.of(
-                "api_base_url", "http://insecure.example.com",
-                "timeout", 1,
-                "client_secret", "weak"
-            );
+            Map<String, Object> insecureConfig = new HashMap<>();
+            insecureConfig.put("api_base_url", "http://insecure.example.com");
+            insecureConfig.put("timeout", 1);
+            insecureConfig.put("client_secret", "weak");
             
-            var warnings = FeatureFlagsHQSDK.validateProductionConfig(insecureConfig);
+            List<String> warnings = FeatureFlagsHQSDK.validateProductionConfig(insecureConfig);
             assertFalse(warnings.isEmpty());
             assertTrue(warnings.stream().anyMatch(w -> w.contains("HTTP instead of HTTPS")));
             assertTrue(warnings.stream().anyMatch(w -> w.contains("Timeout too low")));
@@ -353,13 +355,12 @@ public class AuthenticationTest {
         @Test
         @DisplayName("Should accept secure production configurations")
         void shouldAcceptSecureProductionConfigurations() {
-            Map<String, Object> secureConfig = Map.of(
-                "api_base_url", "https://secure.example.com",
-                "timeout", 30,
-                "client_secret", "very-long-and-secure-client-secret-12345678"
-            );
+            Map<String, Object> secureConfig = new HashMap<>();
+            secureConfig.put("api_base_url", "https://secure.example.com");
+            secureConfig.put("timeout", 30);
+            secureConfig.put("client_secret", "very-long-and-secure-client-secret-12345678");
             
-            var warnings = FeatureFlagsHQSDK.validateProductionConfig(secureConfig);
+            List<String> warnings = FeatureFlagsHQSDK.validateProductionConfig(secureConfig);
             assertTrue(warnings.isEmpty());
         }
 
@@ -371,7 +372,7 @@ public class AuthenticationTest {
                     VALID_CLIENT_ID,
                     VALID_CLIENT_SECRET,
                     "production",
-                    Map.of("offline_mode", true) // For testing
+                    Collections.singletonMap("offline_mode", true) // For testing
                 );
                 prodSdk.close();
             });
